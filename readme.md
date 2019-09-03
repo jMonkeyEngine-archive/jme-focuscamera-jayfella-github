@@ -6,7 +6,7 @@ You can also optionally offset the focus point.
 
 There are several options to choose speeds, max zoom, min zoom, invert Y, etc..
 
-Use the Left Mouse Button to rotate. Use the mousewheel to zoom, middle button to reset offset.
+Use the Left Mouse Button to rotate. Use the mousewheel to zoom. Middle button to reset offset. Right button to move offset.
 
 See the main class for a working example.
 

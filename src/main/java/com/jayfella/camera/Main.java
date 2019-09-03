@@ -23,6 +23,8 @@ public class Main extends SimpleApplication implements ActionListener {
         AppSettings settings = new AppSettings(true);
         settings.setTitle("My Awesome Game");
 
+        settings.setResolution(1280, 720);
+
         app.setSettings(settings);
         app.setShowSettings(false);
         app.start();

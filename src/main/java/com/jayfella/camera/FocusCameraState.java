@@ -47,7 +47,7 @@ public class FocusCameraState extends BaseAppState implements AnalogListener, Ac
     private Vector3f direction = new Vector3f();
     private boolean rotate, translate;
 
-    float[] angles = new float[3];
+    private final float[] angles = new float[3];
 
 
     public FocusCameraState() {
