@@ -2,9 +2,11 @@ Jme-FocusCamera
 ===
 
 A jMonkey AppState that focuses on a given spatial. You can then rotate around it and zoom.
+You can also optionally offset the focus point.
+
 There are several options to choose speeds, max zoom, min zoom, invert Y, etc..
 
-Use the Left Mouse Button to rotate. Use the mousewheel to zoom.
+Use the Left Mouse Button to rotate. Use the mousewheel to zoom, middle button to reset offset.
 
 See the main class for a working example.
 

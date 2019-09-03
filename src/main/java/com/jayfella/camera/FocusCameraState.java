@@ -23,6 +23,7 @@ public class FocusCameraState extends BaseAppState implements AnalogListener, Ac
 
     private static final String TOGGLE_ROTATE = "Toggle_Rotate";
     private static final String TOGGLE_TRANSLATE = "Toggle_Translate";
+    private static final String RESET_OFFSET = "Reset_Offset";
 
     private static final String ZOOM_IN = "Zoom_In";
     private static final String ZOOM_OUT = "Zoom_Out";
@@ -31,6 +32,7 @@ public class FocusCameraState extends BaseAppState implements AnalogListener, Ac
     private Camera cam;
 
     private Spatial focusPoint;
+    private Vector3f offset = new Vector3f();
 
     private float rotationSpeed = FastMath.TWO_PI;
 
@@ -55,6 +57,8 @@ public class FocusCameraState extends BaseAppState implements AnalogListener, Ac
         inputManager.addMapping(TOGGLE_ROTATE, new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping(TOGGLE_TRANSLATE, new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
 
+        inputManager.addMapping(RESET_OFFSET, new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
+
         inputManager.addMapping(MOUSE_MOVE_RIGHT, new MouseAxisTrigger(MouseInput.AXIS_X, true));
         inputManager.addMapping(MOUSE_MOVE_LEFT, new MouseAxisTrigger(MouseInput.AXIS_X, false));
         inputManager.addMapping(MOUSE_MOVE_UP, new MouseAxisTrigger(MouseInput.AXIS_Y, true));
@@ -67,7 +71,7 @@ public class FocusCameraState extends BaseAppState implements AnalogListener, Ac
                 MOUSE_MOVE_UP, MOUSE_MOVE_DOWN,
                 MOUSE_MOVE_LEFT, MOUSE_MOVE_RIGHT,
                 TOGGLE_ROTATE, TOGGLE_TRANSLATE,
-                ZOOM_IN, ZOOM_OUT);
+                ZOOM_IN, ZOOM_OUT, RESET_OFFSET);
     }
 
     private void unregisterInput() {
@@ -202,6 +206,30 @@ public class FocusCameraState extends BaseAppState implements AnalogListener, Ac
         this.invertY = invertY;
     }
 
+    /**
+     * Gets the offset of the focus point.
+     * @return the offset of the focus point.
+     */
+    public Vector3f getOffset() {
+        return offset;
+    }
+
+    /**
+     * Sets the offset of the focus point.
+     * @param offset the offset of the focus point.
+     */
+    public void setOffset(Vector3f offset) {
+        this.offset.set(offset);
+    }
+
+    /**
+     * Sets the offset point to 0,0,0
+     */
+    public void resetOffset() {
+        this.offset.set(0, 0, 0);
+        lookAt();
+    }
+
     @Override
     protected void initialize(Application app) {
         this.inputManager = app.getInputManager();
@@ -236,7 +264,9 @@ public class FocusCameraState extends BaseAppState implements AnalogListener, Ac
         else if (name.equals(TOGGLE_TRANSLATE)) {
             translate = isPressed;
         }
-
+        else if (name.equals(RESET_OFFSET) && isPressed) {
+            resetOffset();
+        }
     }
 
     @Override
@@ -287,6 +317,23 @@ public class FocusCameraState extends BaseAppState implements AnalogListener, Ac
             }
             lookAt();
         }
+        if (translate) {
+            if (MOUSE_MOVE_UP.equals(name) || MOUSE_MOVE_DOWN.equals(name)) {
+
+                int dirState = MOUSE_MOVE_UP.equals(name) ? 1 : -1;
+                offset.addLocal(0, dirState * (rotationSpeed * tpf), 0);
+            }
+
+            if (MOUSE_MOVE_RIGHT.equals(name) || MOUSE_MOVE_LEFT.equals(name)) {
+
+                int dirState = MOUSE_MOVE_RIGHT.equals(name) ? 1 : -1;
+
+                Vector3f left = rotation.mult(Vector3f.UNIT_X);
+                offset.addLocal(left.mult(dirState * (rotationSpeed * tpf)));
+            }
+
+            lookAt();
+        }
 
         if (ZOOM_IN.equals(name)) {
             zoomDistance = Math.max(minZoom, zoomDistance - zoomSpeed);
@@ -298,15 +345,17 @@ public class FocusCameraState extends BaseAppState implements AnalogListener, Ac
         }
     }
 
+    private Quaternion rotation = new Quaternion();
+
     private void lookAt() {
 
-        Quaternion rotation = new Quaternion().fromAngles(angles);
+        rotation = new Quaternion().fromAngles(angles);
 
         Vector3f direction = rotation.mult(Vector3f.UNIT_Z);
-        Vector3f loc = direction.mult(zoomDistance).add(focusPoint.getWorldTranslation());
+        Vector3f loc = direction.mult(zoomDistance).add(focusPoint.getWorldTranslation().add(offset));
         cam.setLocation(loc);
 
-        cam.lookAt(focusPoint.getWorldTranslation(), Vector3f.UNIT_Y);
+        cam.lookAt(focusPoint.getWorldTranslation().add(offset), Vector3f.UNIT_Y);
     }
 
 }
